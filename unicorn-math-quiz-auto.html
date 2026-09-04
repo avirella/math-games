@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Unicorn Number Adventure - Extra Sparkly Challenge</title>
+<style>
+  :root{
+    --cloud:#FDF6FF;
+    --plum:#5B3A76;
+    --pink:#FF9AC7;
+    --gold:#FFD972;
+    --sky:#AEE7FF;
+    --mint:#8FE3CF;
+    --lavender:#C9A7EB;
+    --lavender-dark:#8B5FBF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 12% 15%, rgba(174,231,255,0.45), transparent 40%),
+      radial-gradient(circle at 88% 10%, rgba(255,154,199,0.35), transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(201,167,235,0.3), transparent 45%),
+      var(--cloud);
+    font-family: Verdana, Tahoma, 'Trebuchet MS', sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:24px 12px 60px;
+    color:var(--plum);
+  }
+  .app{
+    width:100%;
+    max-width:640px;
+  }
+  .header{
+    text-align:center;
+    margin-bottom:18px;
+  }
+  .header h1{
+    font-size:clamp(28px, 6vw, 40px);
+    margin:0 0 4px;
+    color:var(--lavender-dark);
+    letter-spacing:0.5px;
+    text-shadow: 2px 2px 0 var(--gold);
+  }
+  .header p{
+    margin:0;
+    font-size:15px;
+    color:var(--plum);
+    opacity:0.85;
+  }
+
+  /* Rainbow progress trail */
+  .trail-wrap{
+    position:relative;
+    height:70px;
+    margin:18px 0 22px;
+  }
+  .rainbow-track{
+    position:absolute;
+    top:34px;
+    left:20px;
+    right:20px;
+    height:8px;
+    background:#ecdff7;
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .rainbow-fill{
+    height:100%;
+    background:linear-gradient(90deg, #FF9AC7, #FFD972, #8FE3CF, #AEE7FF, #C9A7EB);
+    width:0%;
+    transition: width 0.6s ease;
+    border-radius:6px;
+  }
+  .mascot{
+    position:absolute;
+    top:0px;
+    left:20px;
+    font-size:34px;
+    transition: left 0.6s ease;
+    transform: translateX(-50%);
+  }
+  .flag{
+    position:absolute;
+    top:2px;
+    right:14px;
+    font-size:28px;
+  }
+
+  .card{
+    background:#ffffff;
+    border-radius:22px;
+    padding:26px 22px 22px;
+    box-shadow: 0 10px 0 rgba(139,95,191,0.10), 0 2px 10px rgba(0,0,0,0.06);
+    border:3px solid var(--lavender);
+    position:relative;
+  }
+  .qcount{
+    display:inline-block;
+    background:var(--gold);
+    color:var(--plum);
+    font-weight:bold;
+    font-size:13px;
+    padding:4px 12px;
+    border-radius:20px;
+    margin-bottom:14px;
+  }
+  .question{
+    font-size:clamp(20px, 5vw, 26px);
+    font-weight:bold;
+    color:var(--lavender-dark);
+    margin:6px 0 20px;
+    line-height:1.4;
+  }
+  .objects{
+    font-size:34px;
+    letter-spacing:6px;
+    margin-bottom:6px;
+  }
+  .answer-row{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+  }
+  .answer-input{
+    width:140px;
+    font-size:28px;
+    font-weight:bold;
+    text-align:center;
+    padding:14px 10px;
+    border-radius:16px;
+    border:3px solid var(--sky);
+    background:#f5fbff;
+    color:var(--plum);
+    -moz-appearance:textfield;
+  }
+  .answer-input::-webkit-outer-spin-button,
+  .answer-input::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+  }
+  .answer-input:focus{
+    outline:none;
+    border-color:var(--lavender-dark);
+    background:#fff;
+  }
+  .answer-input.correct{
+    background:var(--mint);
+    border-color:#4FBFA6;
+    color:#1B4B43;
+    animation: pop 0.35s ease;
+  }
+  .answer-input.wrong{
+    background:var(--pink);
+    border-color:#E0679E;
+    color:white;
+    animation: shake 0.4s ease;
+  }
+  .submit-btn{
+    font-size:18px;
+    font-weight:bold;
+    padding:0 24px;
+    border-radius:16px;
+    border:none;
+    background:var(--lavender-dark);
+    color:white;
+    cursor:pointer;
+    transition: transform 0.12s ease;
+  }
+  .submit-btn:hover{
+    transform: translateY(-2px);
+  }
+  .submit-btn:disabled{
+    opacity:0.5;
+    cursor:default;
+  }
+  @keyframes pop{
+    0%{transform:scale(1);}
+    50%{transform:scale(1.08);}
+    100%{transform:scale(1);}
+  }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-6px);}
+    75%{transform:translateX(6px);}
+  }
+  .feedback{
+    min-height:30px;
+    margin-top:16px;
+    font-size:17px;
+    font-weight:bold;
+    text-align:center;
+  }
+  .feedback.good{color:var(--lavender-dark);}
+  .feedback.bad{color:#E0679E;}
+
+  .next-btn{
+    display:block;
+    margin:18px auto 0;
+    background:var(--lavender-dark);
+    color:white;
+    border:none;
+    padding:12px 26px;
+    border-radius:30px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.3s ease;
+  }
+  .next-btn.show{
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  .score-row{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin-top:16px;
+    font-size:14px;
+    color:var(--plum);
+    opacity:0.8;
+  }
+
+  .end-screen{
+    text-align:center;
+    padding:20px 10px;
+  }
+  .end-screen .big{
+    font-size:70px;
+    margin-bottom:6px;
+  }
+  .end-screen h2{
+    color:var(--lavender-dark);
+    margin:0 0 8px;
+    font-size:28px;
+  }
+  .end-screen p{
+    font-size:17px;
+    margin:0 0 20px;
+  }
+  .restart-btn{
+    background:var(--pink);
+    color:white;
+    border:none;
+    padding:14px 30px;
+    border-radius:30px;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+  }
+  .hidden{display:none;}
+  .sound-toggle{
+    margin-top:10px;
+    background:var(--sky);
+    color:var(--plum);
+    border:none;
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:bold;
+    cursor:pointer;
+  }
+  .sound-toggle.muted{
+    background:#e5e0ea;
+    color:#948aa0;
+  }
+  .top-nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:6px;
+  }
+  .nav-link{
+    text-decoration:none;
+    color:var(--plum);
+    background:#ffffff;
+    border:2px solid var(--lavender);
+    border-radius:14px;
+    padding:6px 12px;
+    font-size:12px;
+    font-weight:bold;
+  }
+  .diff-badge{
+    background:var(--gold);
+    color:var(--plum);
+    font-weight:bold;
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:14px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-nav">
+    <a class="nav-link" href="index.html">← Home</a>
+    <span class="diff-badge" id="diffBadge">Level 3</span>
+    <a class="nav-link" href="settings.html">⚙️ Settings</a>
+  </div>
+  <div class="header">
+    <h1>🦄 Unicorn Number Adventure ✨</h1>
+    <p>Extra sparkly challenge! Type your answer to help the unicorn gallop across the rainbow.</p>
+    <button class="sound-toggle" id="soundToggle">🔊 Sound on</button>
+  </div>
+
+  <div class="trail-wrap">
+    <div class="rainbow-track"><div class="rainbow-fill" id="rainbowFill"></div></div>
+    <div class="mascot" id="mascot">🦄</div>
+    <div class="flag">🏰</div>
+  </div>
+
+  <div class="card" id="quizCard">
+    <div class="qcount" id="qcount">Question 1 of 8</div>
+    <div class="objects" id="objects"></div>
+    <div class="question" id="question"></div>
+    <div class="answer-row">
+      <input type="number" inputmode="numeric" id="answerInput" class="answer-input" placeholder="?" autocomplete="off">
+      <button class="submit-btn" id="submitBtn">Check ✔</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn">Next question ➜</button>
+  </div>
+
+  <div class="card end-screen hidden" id="endCard">
+    <div class="big" id="endEmoji">🎉</div>
+    <h2 id="endTitle">You did it!</h2>
+    <p id="endScore">You got 8 out of 8 stars!</p>
+    <button class="restart-btn" id="restartBtn">Play again</button>
+  </div>
+
+  <div class="score-row" id="scoreRow">⭐ Score: 0</div>
+</div>
+
+<script>
+// --- Randomized problem generator (same difficulty band each time) ---
+const wordNouns = [
+  ["unicorn bakery", "star cookies"],
+  ["unicorn garden", "rainbow flowers"],
+  ["unicorn stable", "glitter horseshoes"],
+  ["unicorn parade", "sparkle balloons"],
+  ["unicorn orchard", "moonbeam apples"],
+  ["unicorn party", "candy gems"]
+];
+const divideNouns = [
+  "sparkle gems", "rainbow beads", "crystal charms", "star tokens", "glitter stones", "magic acorns"
+];
+const containerNouns = ["pouches", "jars", "boxes", "baskets", "chests", "treasure bags"];
+
+function rand(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+
+// --- Difficulty settings (1 = easiest, 5 = hardest), shared with settings.html ---
+const DIFFICULTY_STORAGE_KEY = "mathGamesSettings";
+function loadDifficulty(){
+  try{
+    const raw = localStorage.getItem(DIFFICULTY_STORAGE_KEY);
+    if(!raw) return 3;
+    const parsed = JSON.parse(raw);
+    const lvl = parseInt(parsed.unicorn);
+    return (lvl >= 1 && lvl <= 5) ? lvl : 3;
+  } catch(e){
+    return 3;
+  }
+}
+let DIFF = loadDifficulty();
+
+// Per-level ranges: [level1, level2, level3(original), level4, level5]
+const DIFF_TABLES = {
+  addition:      [[10,60],   [50,200],  [120,480],  [300,900],  [600,2000]],
+  subMax:        [[40,150],  [150,400], [400,950],  [900,2500], [2000,6000]],
+  subSubtrahend: [[10,-5],   [40,-20],  [120,-60],  [300,-150], [600,-300]], // [bMin, offset added to "a" for bMax]
+  mult:          [[1,4],     [2,6],     [4,9],      [6,12],     [8,15]],
+  placeDigits:   [2,          3,         3,          4,          5],
+  wordMult:      [[2,4],     [3,6],     [4,9],      [7,12],     [10,16]],
+  biggest:       [[10,99],   [50,300],  [150,999],  [1000,9999],[5000,99999]],
+  skipSteps:     [[2,5,10],  [5,10,15,20], [10,15,20,25,30,40,50], [50,60,75,80,100], [100,150,200,250,500]],
+  missingAddend: [[10,50,5,30], [50,150,20,80], [120,400,60,220], [400,1000,200,500], [1000,3000,500,1500]],
+  divisionWord:  [[2,4,2,5], [4,6,4,8], [6,9,6,12], [9,12,10,15], [12,15,15,25]]
+};
+
+function genAddition(){
+  const [min,max] = DIFF_TABLES.addition[DIFF-1];
+  const a = rand(min, max);
+  const b = rand(min, max);
+  return { text: `${a} + ${b} = ?`, answer: a + b };
+}
+
+function genSubtraction(){
+  const [aMin,aMax] = DIFF_TABLES.subMax[DIFF-1];
+  const [bMin, bOffset] = DIFF_TABLES.subSubtrahend[DIFF-1];
+  const a = rand(aMin, aMax);
+  const bMax = Math.max(bMin + 1, a + bOffset);
+  const b = rand(bMin, bMax);
+  return { text: `${a} - ${b} = ?`, answer: a - b };
+}
+
+function genMultiplication(){
+  const [min,max] = DIFF_TABLES.mult[DIFF-1];
+  const a = rand(min, max);
+  const b = rand(min, max);
+  return { text: `${a} x ${b} = ?`, answer: a * b };
+}
+
+function genPlaceValue(){
+  const digitCount = DIFF_TABLES.placeDigits[DIFF-1];
+  const digits = [rand(1,9)];
+  for(let i=1;i<digitCount;i++) digits.push(rand(0,9));
+  const num = digits.reduce((acc,d) => acc*10 + d, 0);
+  const idx = rand(0, digitCount-1);
+  const digit = digits[idx];
+  const placeValue = Math.pow(10, digitCount-1-idx);
+  return { text: `What is the value of the ${digit} in ${num.toLocaleString()}?`, answer: digit * placeValue };
+}
+
+function genWordMultiplication(){
+  const [min,max] = DIFF_TABLES.wordMult[DIFF-1];
+  const [place, item] = pick(wordNouns);
+  const rows = rand(min, max);
+  const cols = rand(min, max);
+  return { text: `A ${place} has ${rows} rows of ${cols} ${item}. How many ${item} total?`, answer: rows * cols };
+}
+
+function genBiggest(){
+  const [min,max] = DIFF_TABLES.biggest[DIFF-1];
+  const nums = new Set();
+  while(nums.size < 3) nums.add(rand(min, max));
+  const arr = [...nums];
+  return { text: `Type the biggest number: ${arr[0]}, ${arr[1]}, or ${arr[2]}?`, answer: Math.max(...arr) };
+}
+
+function genSkipCounting(){
+  const step = pick(DIFF_TABLES.skipSteps[DIFF-1]);
+  return { text: `Count by ${step}s: ${step}, ${step*2}, ${step*3}, __?`, answer: step * 4 };
+}
+
+function genMissingAddend(){
+  const [aMin,aMax,offMin,offMax] = DIFF_TABLES.missingAddend[DIFF-1];
+  const a = rand(aMin, aMax);
+  const b = a + rand(offMin, offMax);
+  return { text: `${a} + ? = ${b}`, answer: b - a };
+}
+
+function genDivisionWord(){
+  const [dMin,dMax,qMin,qMax] = DIFF_TABLES.divisionWord[DIFF-1];
+  const divisor = rand(dMin, dMax);
+  const quotient = rand(qMin, qMax);
+  const total = divisor * quotient;
+  const item = pick(divideNouns);
+  const container = pick(containerNouns);
+  return { text: `There are ${total} ${item} split evenly into ${divisor} ${container}. How many in each?`, answer: quotient };
+}
+
+function generateQuestions(){
+  DIFF = loadDifficulty();
+  const generators = [
+    genAddition, genSubtraction, genMultiplication, genPlaceValue,
+    genWordMultiplication, genBiggest, genSkipCounting, genMissingAddend,
+    genMultiplication, genDivisionWord
+  ];
+  const set = generators.map(fn => {
+    const q = fn();
+    return { emoji: "", text: q.text, answer: q.answer };
+  });
+  // shuffle order
+  for(let i = set.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [set[i], set[j]] = [set[j], set[i]];
+  }
+  return set;
+}
+
+let questions = generateQuestions();
+const diffBadgeEl = document.getElementById("diffBadge");
+if(diffBadgeEl) diffBadgeEl.textContent = `Level ${DIFF}`;
+
+let current = 0;
+let score = 0;
+let attempts = 0;
+const MAX_ATTEMPTS = 3;
+let soundOn = true;
+
+const soundToggle = document.getElementById("soundToggle");
+soundToggle.addEventListener("click", () => {
+  soundOn = !soundOn;
+  soundToggle.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+  soundToggle.classList.toggle("muted", !soundOn);
+  if(soundOn) getAudioCtx(); // resume/create on user gesture
+});
+
+// --- Sound effects (Web Audio API, no external files needed) ---
+let audioCtx = null;
+function getAudioCtx(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if(audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone(freq, startTime, duration, type, gainPeak){
+  const ctx = getAudioCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, startTime);
+  gain.gain.setValueAtTime(0.0001, startTime);
+  gain.gain.exponentialRampToValueAtTime(gainPeak, startTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.02);
+}
+
+function playSuccessSound(){
+  if(!soundOn) return;
+  const ctx = getAudioCtx();
+  const now = ctx.currentTime;
+  // cheerful little ascending arpeggio
+  playTone(523.25, now, 0.14, "triangle", 0.18);       // C5
+  playTone(659.25, now + 0.11, 0.14, "triangle", 0.18); // E5
+  playTone(783.99, now + 0.22, 0.22, "triangle", 0.2);  // G5
+}
+
+function playFailSound(){
+  if(!soundOn) return;
+  const ctx = getAudioCtx();
+  const now = ctx.currentTime;
+  // gentle descending "oops" tone, not harsh
+  playTone(311.13, now, 0.16, "sine", 0.15);  // Eb4
+  playTone(233.08, now + 0.13, 0.28, "sine", 0.15); // Bb3
+}
+
+function playVictorySong(){
+  if(!soundOn) return;
+  const ctx = getAudioCtx();
+  const now = ctx.currentTime;
+  // short original sparkly fanfare, ~2.5 seconds
+  const melody = [
+    { f:523.25, t:0.00, d:0.18 }, // C5
+    { f:523.25, t:0.18, d:0.18 }, // C5
+    { f:659.25, t:0.36, d:0.18 }, // E5
+    { f:783.99, t:0.54, d:0.28 }, // G5
+    { f:659.25, t:0.82, d:0.18 }, // E5
+    { f:783.99, t:1.00, d:0.36 }, // G5
+    { f:987.77, t:1.36, d:0.36 }, // B5
+    { f:1046.50,t:1.72, d:0.55 }, // C6
+  ];
+  melody.forEach(note => {
+    playTone(note.f, now + note.t, note.d, "triangle", 0.2);
+  });
+  // little harmony underneath the final chord
+  playTone(659.25, now + 1.72, 0.55, "sine", 0.12);
+  playTone(783.99, now + 1.72, 0.55, "sine", 0.12);
+}
+
+const qcountEl = document.getElementById("qcount");
+const objectsEl = document.getElementById("objects");
+const questionEl = document.getElementById("question");
+const answerInput = document.getElementById("answerInput");
+const submitBtn = document.getElementById("submitBtn");
+const feedbackEl = document.getElementById("feedback");
+const nextBtn = document.getElementById("nextBtn");
+const rainbowFill = document.getElementById("rainbowFill");
+const mascot = document.getElementById("mascot");
+const scoreRow = document.getElementById("scoreRow");
+const quizCard = document.getElementById("quizCard");
+const endCard = document.getElementById("endCard");
+
+function loadQuestion(){
+  const q = questions[current];
+  attempts = 0;
+  qcountEl.textContent = `Question ${current + 1} of ${questions.length}`;
+  objectsEl.textContent = q.emoji;
+  questionEl.textContent = q.text;
+  feedbackEl.textContent = "";
+  feedbackEl.className = "feedback";
+  nextBtn.classList.remove("show");
+
+  answerInput.value = "";
+  answerInput.className = "answer-input";
+  answerInput.disabled = false;
+  submitBtn.disabled = false;
+  updateTrail();
+  setTimeout(() => answerInput.focus(), 50);
+}
+
+function updateTrail(){
+  const pct = (current / questions.length) * 100;
+  rainbowFill.style.width = pct + "%";
+  mascot.style.left = `calc(${pct}% + 20px)`;
+}
+
+function handleAnswer(){
+  if(answerInput.disabled) return;
+  const raw = answerInput.value.trim();
+  if(raw === ""){
+    answerInput.focus();
+    return;
+  }
+  const val = Number(raw);
+  const q = questions[current];
+
+  if(val === q.answer){
+    answerInput.disabled = true;
+    submitBtn.disabled = true;
+    answerInput.classList.remove("wrong");
+    answerInput.classList.add("correct");
+    feedbackEl.textContent = pickPraise();
+    feedbackEl.className = "feedback good";
+    score++;
+    playSuccessSound();
+    scoreRow.textContent = `⭐ Score: ${score}`;
+    nextBtn.classList.add("show");
+    return;
+  }
+
+  // wrong answer
+  attempts++;
+  playFailSound();
+  answerInput.classList.remove("correct");
+  answerInput.classList.add("wrong");
+
+  if(attempts >= MAX_ATTEMPTS){
+    answerInput.disabled = true;
+    submitBtn.disabled = true;
+    feedbackEl.textContent = `Nice try — the answer is ${q.answer}. Onward! 🌟`;
+    feedbackEl.className = "feedback bad";
+    nextBtn.classList.add("show");
+  } else {
+    const triesLeft = MAX_ATTEMPTS - attempts;
+    feedbackEl.textContent = `Not quite — give it another try! (${triesLeft} ${triesLeft === 1 ? "try" : "tries"} left) 🦄`;
+    feedbackEl.className = "feedback bad";
+    answerInput.value = "";
+    answerInput.focus();
+    // clear the red highlight shortly after so it doesn't look "locked in wrong"
+    setTimeout(() => answerInput.classList.remove("wrong"), 400);
+  }
+}
+
+submitBtn.addEventListener("click", handleAnswer);
+answerInput.addEventListener("keydown", (e) => {
+  if(e.key === "Enter"){
+    if(answerInput.disabled && nextBtn.classList.contains("show")){
+      nextBtn.click();
+    } else {
+      handleAnswer();
+    }
+  }
+});
+
+function pickPraise(){
+  const praise = ["Magical! ✨","You're sparkling smart! 🌈","Super job! 🦄","Way to go! 🙌","Enchanting work! ⭐"];
+  return praise[Math.floor(Math.random() * praise.length)];
+}
+
+nextBtn.addEventListener("click", () => {
+  current++;
+  if(current >= questions.length){
+    finishQuiz();
+  } else {
+    loadQuestion();
+  }
+});
+
+function finishQuiz(){
+  quizCard.classList.add("hidden");
+  endCard.classList.remove("hidden");
+  rainbowFill.style.width = "100%";
+  mascot.style.left = "calc(100% + 20px)";
+  playVictorySong();
+
+  const total = questions.length;
+  document.getElementById("endScore").textContent = `You got ${score} out of ${total} stars!`;
+
+  let emoji, title;
+  if(score === total){ emoji="🦄🌈"; title="Perfect gallop across the rainbow!"; }
+  else if(score >= total * 0.7){ emoji="🎉✨"; title="Magical math adventuring!"; }
+  else { emoji="🌟"; title="Nice try — let's grow that unicorn magic!"; }
+  document.getElementById("endEmoji").textContent = emoji;
+  document.getElementById("endTitle").textContent = title;
+}
+
+document.getElementById("restartBtn").addEventListener("click", () => {
+  questions = generateQuestions();
+  if(diffBadgeEl) diffBadgeEl.textContent = `Level ${DIFF}`;
+  current = 0;
+  score = 0;
+  scoreRow.textContent = "⭐ Score: 0";
+  endCard.classList.add("hidden");
+  quizCard.classList.remove("hidden");
+  loadQuestion();
+});
+
+loadQuestion();
+</script>
+</body>
+</html>

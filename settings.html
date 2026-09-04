@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Settings</title>
+<style>
+  :root{
+    --cloud:#FDF6FF;
+    --plum:#5B3A76;
+    --pink:#FF9AC7;
+    --gold:#FFD972;
+    --sky:#AEE7FF;
+    --mint:#8FE3CF;
+    --lavender:#C9A7EB;
+    --lavender-dark:#8B5FBF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 12% 15%, rgba(174,231,255,0.45), transparent 40%),
+      radial-gradient(circle at 88% 10%, rgba(255,154,199,0.35), transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(201,167,235,0.3), transparent 45%),
+      var(--cloud);
+    font-family: Verdana, Tahoma, 'Trebuchet MS', sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 60px;
+    color:var(--plum);
+  }
+  .app{
+    width:100%;
+    max-width:640px;
+  }
+  .top-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .back-link{
+    text-decoration:none;
+    color:var(--plum);
+    background:#ffffff;
+    border:3px solid var(--lavender);
+    border-radius:16px;
+    padding:8px 16px;
+    font-weight:bold;
+    font-size:14px;
+    box-shadow: 0 4px 0 rgba(139,95,191,0.15);
+  }
+  .header{
+    text-align:center;
+    flex:1;
+  }
+  .header h1{
+    font-size:clamp(26px, 6vw, 36px);
+    margin:0 0 4px;
+    color:var(--lavender-dark);
+    text-shadow: 2px 2px 0 var(--gold);
+  }
+  .header p{
+    margin:0;
+    font-size:14px;
+    opacity:0.85;
+  }
+  .spacer{ width:76px; }
+
+  .card{
+    background:#ffffff;
+    border-radius:24px;
+    padding:26px 24px;
+    box-shadow: 0 10px 0 rgba(139,95,191,0.10), 0 2px 10px rgba(0,0,0,0.06);
+    border:3px solid var(--lavender);
+    margin-bottom:22px;
+  }
+  .card-title{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:6px;
+  }
+  .card-title .emoji{ font-size:32px; }
+  .card-title h2{
+    margin:0;
+    font-size:20px;
+    color:var(--lavender-dark);
+  }
+  .card-sub{
+    font-size:13px;
+    opacity:0.75;
+    margin:0 0 18px;
+  }
+
+  .slider-row{
+    margin-bottom:8px;
+  }
+  input[type="range"]{
+    width:100%;
+    height:10px;
+    border-radius:8px;
+    -webkit-appearance:none;
+    appearance:none;
+    background: linear-gradient(90deg, var(--mint), var(--gold), var(--pink));
+    outline:none;
+    margin:10px 0;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    background:#ffffff;
+    border:4px solid var(--lavender-dark);
+    cursor:pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    background:#ffffff;
+    border:4px solid var(--lavender-dark);
+    cursor:pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .level-labels{
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+    opacity:0.6;
+    padding:0 4px;
+  }
+  .level-display{
+    text-align:center;
+    margin-top:14px;
+    padding:10px;
+    border-radius:16px;
+    background:var(--cloud);
+    border:2px dashed var(--lavender);
+  }
+  .level-display .lvl-name{
+    font-weight:bold;
+    font-size:17px;
+    color:var(--lavender-dark);
+  }
+  .level-display .lvl-desc{
+    font-size:12px;
+    opacity:0.75;
+    margin-top:2px;
+  }
+
+  .unicorn-card .card-title h2{ color:#C25E93; }
+  .softball-card .card-title h2{ color:#1B4B8F; }
+
+  .save-row{
+    text-align:center;
+    margin-top:8px;
+  }
+  .save-btn{
+    background:var(--lavender-dark);
+    color:white;
+    border:none;
+    padding:14px 34px;
+    border-radius:30px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow: 0 5px 0 rgba(91,58,118,0.35);
+  }
+  .save-btn:active{ transform: translateY(3px); box-shadow:0 1px 0 rgba(91,58,118,0.35); }
+  .save-msg{
+    text-align:center;
+    margin-top:12px;
+    font-size:14px;
+    font-weight:bold;
+    color:var(--lavender-dark);
+    min-height:20px;
+    opacity:0;
+    transition:opacity 0.3s ease;
+  }
+  .save-msg.show{ opacity:1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-row">
+    <a class="back-link" href="index.html">← Back</a>
+    <div class="header">
+      <h1>⚙️ Game Settings</h1>
+      <p>Choose how tricky each game feels</p>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <div class="card unicorn-card">
+    <div class="card-title">
+      <div class="emoji">🦄</div>
+      <h2>Unicorn Number Adventure</h2>
+    </div>
+    <p class="card-sub">Slide right for bigger numbers and trickier problems.</p>
+    <div class="slider-row">
+      <input type="range" id="unicornSlider" min="1" max="5" step="1" value="3">
+      <div class="level-labels">
+        <span>Easiest</span><span>Easy</span><span>Medium</span><span>Hard</span><span>Hardest</span>
+      </div>
+    </div>
+    <div class="level-display">
+      <div class="lvl-name" id="unicornLevelName">Level 3 — Medium</div>
+      <div class="lvl-desc" id="unicornLevelDesc">3-digit numbers, times tables up to 9</div>
+    </div>
+  </div>
+
+  <div class="card softball-card">
+    <div class="card-title">
+      <div class="emoji">⚾</div>
+      <h2>Softball Math Slugger</h2>
+    </div>
+    <p class="card-sub">Slide right for bigger numbers and tougher word problems.</p>
+    <div class="slider-row">
+      <input type="range" id="softballSlider" min="1" max="5" step="1" value="3">
+      <div class="level-labels">
+        <span>Easiest</span><span>Easy</span><span>Medium</span><span>Hard</span><span>Hardest</span>
+      </div>
+    </div>
+    <div class="level-display">
+      <div class="lvl-name" id="softballLevelName">Level 3 — Medium</div>
+      <div class="lvl-desc" id="softballLevelDesc">Multi-digit operations, standard word problems</div>
+    </div>
+  </div>
+
+  <div class="save-row">
+    <button class="save-btn" id="saveBtn">Save Settings 💾</button>
+    <div class="save-msg" id="saveMsg">Saved! Your games will use these settings next time you play.</div>
+  </div>
+</div>
+
+<script>
+  const UNICORN_LEVELS = {
+    1: { name: "Level 1 — Easiest", desc: "Small numbers, simple facts, gentle counting" },
+    2: { name: "Level 2 — Easy", desc: "2-digit numbers, times tables up to 6" },
+    3: { name: "Level 3 — Medium", desc: "3-digit numbers, times tables up to 9" },
+    4: { name: "Level 4 — Hard", desc: "Bigger numbers, times tables up to 12" },
+    5: { name: "Level 5 — Hardest", desc: "Large numbers, times tables up to 15" }
+  };
+  const SOFTBALL_LEVELS = {
+    1: { name: "Level 1 — Easiest", desc: "Small numbers, basic facts, simple word problems" },
+    2: { name: "Level 2 — Easy", desc: "3rd grade range, gentle multi-digit practice" },
+    3: { name: "Level 3 — Medium", desc: "Multi-digit operations, standard word problems" },
+    4: { name: "Level 4 — Hard", desc: "Bigger numbers, tougher fractions and word problems" },
+    5: { name: "Level 5 — Hardest", desc: "Large numbers, tight fraction comparisons, multi-step challenges" }
+  };
+
+  const DEFAULT_SETTINGS = { unicorn: 3, softball: 3 };
+  const STORAGE_KEY = "mathGamesSettings";
+
+  function loadSettings(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return { ...DEFAULT_SETTINGS };
+      const parsed = JSON.parse(raw);
+      return {
+        unicorn: Math.min(5, Math.max(1, parseInt(parsed.unicorn) || 3)),
+        softball: Math.min(5, Math.max(1, parseInt(parsed.softball) || 3))
+      };
+    } catch(e){
+      return { ...DEFAULT_SETTINGS };
+    }
+  }
+
+  function saveSettings(settings){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      return true;
+    } catch(e){
+      return false;
+    }
+  }
+
+  const unicornSlider = document.getElementById("unicornSlider");
+  const softballSlider = document.getElementById("softballSlider");
+  const unicornLevelName = document.getElementById("unicornLevelName");
+  const unicornLevelDesc = document.getElementById("unicornLevelDesc");
+  const softballLevelName = document.getElementById("softballLevelName");
+  const softballLevelDesc = document.getElementById("softballLevelDesc");
+  const saveBtn = document.getElementById("saveBtn");
+  const saveMsg = document.getElementById("saveMsg");
+
+  function updateUnicornDisplay(){
+    const lvl = UNICORN_LEVELS[unicornSlider.value];
+    unicornLevelName.textContent = lvl.name;
+    unicornLevelDesc.textContent = lvl.desc;
+  }
+  function updateSoftballDisplay(){
+    const lvl = SOFTBALL_LEVELS[softballSlider.value];
+    softballLevelName.textContent = lvl.name;
+    softballLevelDesc.textContent = lvl.desc;
+  }
+
+  const current = loadSettings();
+  unicornSlider.value = current.unicorn;
+  softballSlider.value = current.softball;
+  updateUnicornDisplay();
+  updateSoftballDisplay();
+
+  unicornSlider.addEventListener("input", updateUnicornDisplay);
+  softballSlider.addEventListener("input", updateSoftballDisplay);
+
+  saveBtn.addEventListener("click", () => {
+    const ok = saveSettings({
+      unicorn: parseInt(unicornSlider.value),
+      softball: parseInt(softballSlider.value)
+    });
+    saveMsg.textContent = ok
+      ? "Saved! Your games will use these settings next time you play."
+      : "Hmm, couldn't save — your browser may be blocking storage.";
+    saveMsg.classList.add("show");
+    setTimeout(() => saveMsg.classList.remove("show"), 2600);
+  });
+</script>
+</body>
+</html>

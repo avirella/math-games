@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Slugger — 9 Innings to 4th Grade</title>
+<style>
+  :root{
+    --navy: #0B2545;
+    --blue: #13315C;
+    --field-blue: #1B4B8F;
+    --dirt: #E8B94A;
+    --dirt-dark: #C99A2E;
+    --sun-yellow: #FFD23F;
+    --chalk: #F5F7FA;
+    --safe-green: #3ED987;
+    --out-red: #FF5A5F;
+    --stitch: #C0392B;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(180deg, var(--navy) 0%, var(--blue) 55%, var(--field-blue) 100%);
+    color: var(--chalk);
+    overflow-x:hidden;
+  }
+  .stars{
+    position:fixed; inset:0; pointer-events:none; opacity:0.5;
+    background-image: radial-gradient(2px 2px at 20% 30%, #fff, transparent),
+                       radial-gradient(1.5px 1.5px at 70% 20%, #fff, transparent),
+                       radial-gradient(1.5px 1.5px at 40% 70%, #fff, transparent),
+                       radial-gradient(2px 2px at 85% 60%, #fff, transparent),
+                       radial-gradient(1px 1px at 55% 15%, #fff, transparent);
+    background-repeat:no-repeat;
+  }
+  .wrap{
+    max-width:640px; margin:0 auto; padding:18px 16px 40px;
+    position:relative; z-index:2;
+    min-height:100vh; display:flex; flex-direction:column; align-items:stretch;
+  }
+
+  /* Scoreboard header */
+  .scoreboard{
+    background:#08192E; border:3px solid var(--sun-yellow); border-radius:14px;
+    padding:12px 16px; display:flex; justify-content:space-between; align-items:center;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.35), 0 0 0 4px #08192E inset;
+    font-variant-numeric: tabular-nums;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+  }
+  .brand-ball{
+    width:34px; height:34px; border-radius:50%;
+    background: radial-gradient(circle at 32% 30%, #fffdf0, var(--sun-yellow) 60%, var(--dirt-dark) 100%);
+    position:relative; box-shadow: 0 0 0 2px rgba(0,0,0,0.15) inset;
+    flex-shrink:0;
+  }
+  .brand-ball::before, .brand-ball::after{
+    content:""; position:absolute; width:22px; height:10px; border:2px solid var(--stitch);
+    border-top:none; border-radius: 0 0 50% 50%; top:5px; left:6px;
+  }
+  .brand-ball::after{ transform: rotate(180deg); top:19px; }
+  .brand h1{
+    font-size:16px; margin:0; letter-spacing:0.5px; line-height:1.1;
+    color: var(--sun-yellow); text-transform:uppercase; font-weight:800;
+  }
+  .brand span{ display:block; font-size:11px; color:#9fb3d1; font-weight:400; letter-spacing:1px;}
+  .score-tile{ text-align:center; padding:0 10px; }
+  .score-tile .num{ font-size:22px; font-weight:800; color:var(--sun-yellow); }
+  .score-tile .lbl{ font-size:10px; color:#9fb3d1; letter-spacing:1px; text-transform:uppercase; }
+
+  /* Field */
+  .field{
+    margin-top:16px; position:relative; border-radius:16px; overflow:hidden;
+    background: conic-gradient(from 45deg at 50% 100%, #1c5aa8 0deg, #1c5aa8 90deg, #164a8a 90deg, #164a8a 180deg, #1c5aa8 180deg, #1c5aa8 270deg, #164a8a 270deg, #164a8a 360deg);
+    height:150px;
+  }
+  .diamond{
+    position:absolute; bottom:-60px; left:50%; transform: translateX(-50%) rotate(45deg);
+    width:150px; height:150px; background: var(--dirt); border:3px solid var(--dirt-dark);
+  }
+  .base{
+    position:absolute; width:14px; height:14px; background:var(--chalk); border:2px solid #cfd8e3;
+    transform: rotate(45deg);
+  }
+  .base.first{ top:50%; right:-9px; margin-top:-9px; }
+  .base.second{ top:-9px; left:50%; margin-left:-9px; }
+  .base.third{ top:50%; left:-9px; margin-top:-9px; }
+  .base.home{ bottom:-9px; left:50%; margin-left:-9px; background:var(--sun-yellow); }
+  .inning-flag{
+    position:absolute; top:10px; left:14px; background:rgba(0,0,0,0.8); border:2px solid var(--sun-yellow);
+    border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700; letter-spacing:0.5px;
+  }
+  .inning-flag b{ color: var(--sun-yellow); }
+  .mascot-badge{
+    position:absolute; top:8px; right:12px; z-index:6; text-align:center;
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,0.4));
+  }
+  .mascot-badge svg{ width:52px; height:52px; display:block; }
+  .mascot-badge span{
+    display:block; margin-top:2px; font-size:9px; font-weight:800; letter-spacing:1.5px;
+    text-transform:uppercase; color: var(--sun-yellow); text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  }
+
+  /* Problem card */
+  .card{
+    margin-top:18px; background: var(--chalk); color:#122238; border-radius:18px; padding:22px 20px 26px;
+    box-shadow: 0 10px 0 rgba(0,0,0,0.25);
+    position:relative;
+  }
+  .card::before{
+    content:""; position:absolute; top:-10px; left:24px; right:24px; height:10px;
+    background:repeating-linear-gradient(90deg, var(--stitch) 0 6px, transparent 6px 14px);
+    opacity:0.6;
+  }
+  .prompt-lbl{
+    font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#5b7191; font-weight:700; margin-bottom:6px;
+  }
+  .question{
+    font-size: clamp(24px, 6vw, 32px); font-weight:800; color:var(--navy); line-height:1.25; margin-bottom:18px;
+  }
+  .answer-row{
+    display:flex; gap:10px; align-items:stretch;
+  }
+  .answer-input{
+    flex:1; min-width:0; font-size:22px; font-weight:800; text-align:center;
+    padding:14px 10px; border-radius:14px; border:3px solid var(--dirt-dark);
+    background:#ffffff; color:#122238; font-family:inherit;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .answer-input::placeholder{ color:#a9b3c2; font-weight:600; font-size:16px; }
+  .answer-input:focus{ outline:none; box-shadow: 0 0 0 3px rgba(255,210,63,0.45); }
+  .answer-input:disabled{ opacity:0.7; }
+  .answer-input.correct-reveal{ background:#eafff2; border-color:#1a9b5c; color:#0a5c33; }
+  .answer-input.wrong-reveal{ background:#fff0ef; border-color:#c73438; color:#8c1116; }
+  .swing-btn{
+    all:unset; cursor:pointer; text-align:center; font-weight:800; font-size:16px;
+    padding:0 22px; border-radius:14px; color:#0B2545; white-space:nowrap;
+    background: var(--dirt); border:3px solid var(--dirt-dark);
+    box-shadow: 0 5px 0 var(--dirt-dark);
+    display:flex; align-items:center; justify-content:center;
+    transition: transform 0.08s ease;
+  }
+  .swing-btn:active{ transform: translateY(4px); box-shadow: 0 1px 0 var(--dirt-dark); }
+  .swing-btn:disabled{ cursor:default; opacity:0.5; }
+  .feedback-note{
+    margin-top:12px; font-size:14px; font-weight:700; color:#5b7191; min-height:20px;
+  }
+
+  /* Call overlay (SAFE / OUT) */
+  .call-overlay{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    pointer-events:none; z-index:50; opacity:0;
+  }
+  .call-text{
+    font-size: clamp(52px, 16vw, 100px); font-weight:900; letter-spacing:2px;
+    -webkit-text-stroke: 3px rgba(0,0,0,0.3);
+    transform: scale(0.4) rotate(-8deg); opacity:0;
+    text-shadow: 0 6px 0 rgba(0,0,0,0.25);
+  }
+  .call-text.safe{ color: var(--safe-green); }
+  .call-text.out{ color: var(--out-red); }
+  .call-text.strike{ color: #FFB020; }
+  @keyframes callPop{
+    0%{ transform: scale(0.3) rotate(-10deg); opacity:0; }
+    55%{ transform: scale(1.15) rotate(2deg); opacity:1; }
+    75%{ transform: scale(0.97) rotate(-1deg); opacity:1; }
+    100%{ transform: scale(1) rotate(0deg); opacity:1; }
+  }
+  .call-overlay.show{ opacity:1; }
+  .call-overlay.show .call-text{ animation: callPop 0.5s ease forwards; }
+
+  /* Bottom controls */
+  .footer-row{
+    margin-top:18px; display:flex; justify-content:space-between; align-items:center; gap:10px;
+  }
+  .progress-dots{ display:flex; gap:6px; flex-wrap:wrap; }
+  .dot{ width:11px; height:11px; border-radius:50%; background:#274a73; border:2px solid #3a638f; }
+  .dot.played-safe{ background: var(--safe-green); border-color:#1a9b5c; }
+  .dot.played-out{ background: var(--out-red); border-color:#c73438; }
+  .next-btn{
+    all:unset; cursor:pointer; background: var(--sun-yellow); color:#3a2b00; font-weight:800;
+    padding:10px 20px; border-radius:30px; border:3px solid var(--dirt-dark); box-shadow:0 4px 0 var(--dirt-dark);
+    font-size:14px; letter-spacing:0.5px; opacity:0; pointer-events:none; transition: opacity 0.2s;
+  }
+  .next-btn.ready{ opacity:1; pointer-events:auto; }
+  .next-btn:active{ transform: translateY(3px); box-shadow:0 1px 0 var(--dirt-dark); }
+
+  /* End screen */
+  .end-screen{
+    margin-top:18px; background: var(--chalk); color:#122238; border-radius:18px; padding:30px 22px;
+    text-align:center; box-shadow: 0 10px 0 rgba(0,0,0,0.25);
+  }
+  .trophy{ font-size:60px; }
+  .end-title{ font-size:26px; font-weight:900; color:var(--navy); margin:6px 0 2px;}
+  .end-sub{ font-size:15px; color:#5b7191; margin-bottom:18px; }
+  .end-score{ font-size:44px; font-weight:900; color:var(--stitch); margin-bottom:6px; }
+  .level-badge{
+    display:inline-block; margin:10px 0 20px; padding:10px 20px; border-radius:30px;
+    background: linear-gradient(90deg, var(--sun-yellow), #ffe98a); font-weight:800; color:#3a2b00;
+    border:2px solid var(--dirt-dark);
+  }
+  .replay-btn{
+    all:unset; cursor:pointer; background: var(--navy); color:var(--sun-yellow); font-weight:800;
+    padding:12px 26px; border-radius:30px; border:3px solid var(--sun-yellow); font-size:15px;
+  }
+  .replay-btn:active{ transform: translateY(2px); }
+
+  .sound-toggle{
+    all:unset; cursor:pointer;
+    background:#08192E; border:2px solid var(--sun-yellow); color:var(--sun-yellow);
+    border-radius:20px; padding:6px 12px; font-size:12px; font-weight:700;
+  }
+  .top-nav{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:6px; flex-wrap:wrap;
+  }
+  .nav-link{
+    text-decoration:none; color:var(--sun-yellow); background:#08192E;
+    border:2px solid var(--sun-yellow); border-radius:16px; padding:6px 12px;
+    font-size:12px; font-weight:700;
+  }
+  .diff-badge{
+    background: var(--dirt); color:#3a2b00; font-weight:800; font-size:12px;
+    padding:6px 12px; border-radius:16px; border:2px solid var(--dirt-dark);
+  }
+
+  @media (max-width:400px){
+    .options{ grid-template-columns: 1fr 1fr; }
+    .opt{ font-size:17px; padding:14px 6px; }
+  }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="wrap">
+
+  <div class="top-nav">
+    <a class="nav-link" href="index.html">← Home</a>
+    <span class="diff-badge" id="diffBadge">Level 3</span>
+    <button class="sound-toggle" id="soundToggle">🔊 Sound On</button>
+    <a class="nav-link" href="settings.html">⚙️ Settings</a>
+  </div>
+
+  <div class="scoreboard">
+    <div class="brand">
+      <div class="brand-ball"></div>
+      <div>
+        <h1>Math Slugger</h1>
+        <span>Level up: 3rd → 4th grade</span>
+      </div>
+    </div>
+    <div style="display:flex; gap:14px;">
+      <div class="score-tile">
+        <div class="num" id="inningNum">1</div>
+        <div class="lbl">Inning</div>
+      </div>
+      <div class="score-tile">
+        <div class="num" id="scoreNum">0</div>
+        <div class="lbl">Runs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="inning-flag">Inning <b id="inningFlag">1</b> of 9</div>
+    <div class="mascot-badge">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="47" fill="#0B2545" stroke="var(--sun-yellow)" stroke-width="4"/>
+        <g fill="var(--sun-yellow)">
+          <!-- left wing -->
+          <polygon points="48,52 8,26 14,44 6,50 16,58 10,66 30,62 48,58" />
+          <!-- right wing -->
+          <polygon points="52,52 92,26 86,44 94,50 84,58 90,66 70,62 52,58" />
+          <!-- body / tail -->
+          <polygon points="50,54 40,88 50,80 60,88" />
+          <!-- head -->
+          <circle cx="50" cy="34" r="12" />
+        </g>
+        <!-- beak -->
+        <polygon points="50,34 62,38 50,44" fill="#C99A2E" />
+        <!-- eye -->
+        <circle cx="46" cy="31" r="2.4" fill="#0B2545" />
+      </svg>
+      <span>Raiders</span>
+    </div>
+    <div class="diamond">
+      <div class="base first"></div>
+      <div class="base second"></div>
+      <div class="base third"></div>
+      <div class="base home"></div>
+    </div>
+  </div>
+
+  <div id="gameArea">
+    <div class="card" id="problemCard">
+      <div class="prompt-lbl" id="skillLabel">Skill</div>
+      <div class="question" id="questionText">Loading...</div>
+      <div class="answer-row">
+        <input type="text" id="answerInput" class="answer-input" placeholder="Type your answer" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="swing-btn" id="swingBtn">Swing! 🏏</button>
+      </div>
+      <div class="feedback-note" id="feedbackNote"></div>
+    </div>
+
+    <div class="footer-row">
+      <div class="progress-dots" id="progressDots"></div>
+      <button class="next-btn" id="nextBtn">Next Batter →</button>
+    </div>
+  </div>
+
+  <div id="endScreen" class="end-screen" style="display:none;">
+    <div class="trophy">🏆</div>
+    <div class="end-title" id="endTitle">Game Over!</div>
+    <div class="end-sub" id="endSub">Here's how you played, slugger.</div>
+    <div class="end-score" id="endScore">0 / 9</div>
+    <div class="level-badge" id="levelBadge">Nice hustle!</div>
+    <div>
+      <button class="replay-btn" id="replayBtn">Play Again</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="call-overlay" id="callOverlay">
+  <div class="call-text" id="callText"></div>
+</div>
+
+<script>
+(function(){
+  // ---------- AUDIO (fully synthesized, no external files needed) ----------
+  let audioCtx = null;
+  let soundOn = true;
+  function ctx(){
+    if(!audioCtx){ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+    return audioCtx;
+  }
+
+  function playBatCrack(){
+    if(!soundOn) return;
+    const c = ctx();
+    const now = c.currentTime;
+    // Noise burst for the "crack"
+    const bufferSize = c.sampleRate * 0.12;
+    const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++){
+      data[i] = (Math.random()*2-1) * Math.pow(1 - i/bufferSize, 3);
+    }
+    const noise = c.createBufferSource();
+    noise.buffer = buffer;
+    const noiseFilter = c.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.setValueAtTime(1800, now);
+    noiseFilter.Q.value = 0.6;
+    const noiseGain = c.createGain();
+    noiseGain.gain.setValueAtTime(0.9, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+    noise.connect(noiseFilter).connect(noiseGain).connect(c.destination);
+    noise.start(now);
+    noise.stop(now + 0.14);
+
+    // Low thock for the wood impact
+    const osc = c.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(60, now + 0.09);
+    const oscGain = c.createGain();
+    oscGain.gain.setValueAtTime(0.7, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+    osc.connect(oscGain).connect(c.destination);
+    osc.start(now);
+    osc.stop(now + 0.12);
+  }
+
+  function playSafeChime(){
+    if(!soundOn) return;
+    const c = ctx();
+    const now = c.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C E G C - bright ascending
+    notes.forEach((f,i)=>{
+      const osc = c.createOscillator();
+      osc.type = 'square';
+      osc.frequency.value = f;
+      const g = c.createGain();
+      const t0 = now + i*0.07;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.25, t0+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0+0.25);
+      osc.connect(g).connect(c.destination);
+      osc.start(t0);
+      osc.stop(t0+0.26);
+    });
+  }
+
+  function playOutBuzz(){
+    if(!soundOn) return;
+    const c = ctx();
+    const now = c.currentTime;
+    const osc = c.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.linearRampToValueAtTime(90, now+0.35);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.22, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now+0.38);
+    osc.connect(g).connect(c.destination);
+    osc.start(now);
+    osc.stop(now+0.4);
+  }
+
+  function playStrikeBuzz(){
+    if(!soundOn) return;
+    const c = ctx();
+    const now = c.currentTime;
+    const osc = c.createOscillator();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(320, now);
+    osc.frequency.linearRampToValueAtTime(220, now+0.14);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.16, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now+0.16);
+    osc.connect(g).connect(c.destination);
+    osc.start(now);
+    osc.stop(now+0.17);
+  }
+
+  function playVictorySong(){
+    if(!soundOn) return;
+    const c = ctx();
+    const now = c.currentTime;
+    // Short, happy 8-note fanfare
+    const melody = [
+      {f:523.25, d:0.16},{f:523.25, d:0.16},{f:523.25, d:0.16},{f:659.25, d:0.22},
+      {f:783.99, d:0.16},{f:880.0,  d:0.16},{f:783.99, d:0.16},{f:1046.5, d:0.4}
+    ];
+    let t = now;
+    melody.forEach(n=>{
+      const osc = c.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = n.f;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.28, t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t+n.d);
+      osc.connect(g).connect(c.destination);
+      osc.start(t);
+      osc.stop(t+n.d+0.02);
+      t += n.d*0.92;
+    });
+  }
+
+  document.getElementById('soundToggle').addEventListener('click', function(){
+    soundOn = !soundOn;
+    this.textContent = soundOn ? '🔊 Sound On' : '🔇 Sound Off';
+    if(soundOn) ctx();
+  });
+
+  // ---------- PROBLEM GENERATION (3rd -> 4th grade skills) ----------
+  function rand(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]] = [arr[j],arr[i]];
+    }
+    return arr;
+  }
+  function gcd(a,b){ return b===0 ? a : gcd(b, a%b); }
+
+  // --- Difficulty settings (1 = easiest, 5 = hardest), shared with settings.html ---
+  const DIFFICULTY_STORAGE_KEY = "mathGamesSettings";
+  function loadDifficulty(){
+    try{
+      const raw = localStorage.getItem(DIFFICULTY_STORAGE_KEY);
+      if(!raw) return 3;
+      const parsed = JSON.parse(raw);
+      const lvl = parseInt(parsed.softball);
+      return (lvl >= 1 && lvl <= 5) ? lvl : 3;
+    } catch(e){
+      return 3;
+    }
+  }
+  let DIFF = loadDifficulty();
+
+  // Per-skill ranges by level: [level1, level2, level3(original), level4, level5]
+  const DIFF_TABLES = {
+    addition:      [[40,300],       [1000,15000],     [48000,396500],   [500000,3000000],   [3000000,25000000]],
+    subA:          [[80,600],       [2000,30000],     [80000,497500],   [1000000,6000000],  [8000000,50000000]],
+    subB:          [[20,-10],       [500,-300],       [15000,-2000],    [200000,-100000],   [2000000,-1000000]],
+    mult2d:        [[[3,12],[2,9]], [[10,30],[6,15]], [[34,96],[22,68]],[[80,150],[40,90]], [[120,300],[60,150]]],
+    multFacts:     [[[2,6],[2,6]],  [[6,10],[5,9]],   [[11,19],[9,16]], [[15,25],[12,20]],  [[20,35],[15,28]]],
+    divRem1:       [[[2,4],[3,8]],  [[3,6],[10,20]],  [[6,12],[35,70]], [[9,15],[60,120]],  [[12,20],[100,200]]],
+    divExact1:     [[[2,4],[3,10]], [[4,7],[10,30]],  [[8,12],[55,110]],[[9,15],[100,200]], [[12,20],[150,300]]],
+    divExact2:     [[[10,15],[2,6]],[[15,24],[8,15]], [[24,48],[22,55]],[[40,70],[50,90]],  [[60,99],[80,150]]],
+    divRem2:       [[[10,15],[2,6]],[[15,24],[8,15]], [[24,48],[22,55]],[[40,70],[50,90]],  [[60,99],[80,150]]],
+    roundLow:      [[15,995],       [105,9950],       [10500,985000],   [105000,8985000],   [1050000,89850000]],
+    roundHigh:     [[105,9950],     [1050,98500],     [105000,8985000], [1050000,89850000], [10500000,895000000]],
+    roundLowDiv:   [10,               100,              1000,             10000,              100000],
+    roundHighDiv:  [100,              1000,             10000,            100000,             1000000],
+    placeDigits:   [2,                4,                8,                9,                  10],
+    fracSmallDen:  [[2,3,4],         [3,4,5,6],        [4,5,6,7,8,9],    [6,7,8,9,10,11,12], [8,9,10,11,12,13,14,15]],
+    fracMult:      [[2,3],           [2,4],            [3,5],            [4,6],              [5,8]],
+    fracThreshold: [0.15,             0.08,             0.025,            0.012,              0.005],
+    stepTeams:     [[[3,6],[4,8],[2,6],[1,4]], [[6,12],[8,15],[4,12],[3,10]], [[14,26],[16,32],[10,28],[8,24]], [[25,45],[28,50],[20,45],[15,40]], [[40,70],[45,80],[35,70],[25,60]]],
+    divWordProb:   [[[2,4],[3,8]],  [[6,12],[10,20]], [[24,48],[28,65]],[[40,70],[50,90]],  [[60,100],[80,150]]],
+    perimeter:     [[[4,12],[3,8]], [[15,40],[10,25]],[[75,180],[45,120]],[[150,300],[100,220]],[[250,500],[180,400]]],
+    area:          [[[3,10],[2,8]], [[10,25],[8,18]], [[28,65],[18,48]],[[60,110],[40,80]], [[100,180],[70,140]]],
+    mult3x1:       [[[10,40],[2,4]],[[40,120],[3,6]], [[120,480],[6,9]],[[400,900],[8,12]], [[800,2000],[10,15]]],
+    stepCases:     [[[3,6],[4,10],[1,5]], [[8,15],[10,20],[5,15]], [[18,42],[24,60],[15,90]], [[35,60],[50,90],[60,150]], [[55,90],[80,130],[100,250]]],
+    stepFence:     [[[4,10],[3,8],[1,3]], [[12,25],[8,18],[2,5]], [[35,90],[20,60],[4,12]], [[70,140],[45,100],[10,20]], [[120,220],[80,180],[18,35]]]
+  };
+  const PLACE_NAMES = {1:"ones",10:"tens",100:"hundreds",1000:"thousands",10000:"ten thousands",
+    100000:"hundred thousands",1000000:"millions",10000000:"ten millions",100000000:"hundred millions",1000000000:"billions"};
+
+  // Each generator returns: skill, q, displayAnswer (string shown if wrong),
+  // and validate(userInput) -> boolean (userInput is already trimmed, lowercased, spaces stripped)
+  const generators = [
+    // multi-digit addition, bigger numbers, regrouping across multiple places
+    function(){
+      const [min,max] = DIFF_TABLES.addition[DIFF-1];
+      const a = rand(min,max), b = rand(min,max);
+      const answer = a+b;
+      return { skill:"Multi-digit Addition", q:`${a} + ${b} = ?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // multi-digit subtraction with zeros / regrouping, bigger numbers
+    function(){
+      const [aMin,aMax] = DIFF_TABLES.subA[DIFF-1];
+      const [bMin,bOffset] = DIFF_TABLES.subB[DIFF-1];
+      const a = rand(aMin,aMax);
+      const bMax = Math.max(bMin+1, a+bOffset);
+      const b = rand(bMin, bMax);
+      const answer = a-b;
+      return { skill:"Multi-digit Subtraction", q:`${a} - ${b} = ?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // two-digit by two-digit multiplication
+    function(){
+      const [aR,bR] = DIFF_TABLES.mult2d[DIFF-1];
+      const a = rand(aR[0],aR[1]), b = rand(bR[0],bR[1]);
+      const answer = a*b;
+      return { skill:"Multi-digit Multiplication", q:`${a} × ${b} = ?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // harder multiplication facts, stretched beyond the standard 12x12 table
+    function(){
+      const [aR,bR] = DIFF_TABLES.multFacts[DIFF-1];
+      const a = rand(aR[0],aR[1]), b = rand(bR[0],bR[1]);
+      const answer = a*b;
+      return { skill:"Multiplication Facts", q:`${a} × ${b} = ?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // division with a remainder — answer format like 7R3
+    function(){
+      const [bR,qR] = DIFF_TABLES.divRem1[DIFF-1];
+      const b = rand(bR[0],bR[1]);
+      const q = rand(qR[0],qR[1]);
+      const extra = rand(1, Math.max(1,b-1));
+      const a = b*q + extra;
+      const displayAnswer = `${q}R${extra}`;
+      return { skill:"Division with Remainder", q:`${a} ÷ ${b} = ? (write like 7R3)`, displayAnswer,
+        validate: u => {
+          const cleaned = u.toUpperCase().replace(/\s+/g,'');
+          const m = cleaned.match(/^(\d+)R(\d+)$/);
+          if(!m) return false;
+          return Number(m[1]) === q && Number(m[2]) === extra;
+        } };
+    },
+    // clean whole-number division, larger dividends
+    function(){
+      const [bR,ansR] = DIFF_TABLES.divExact1[DIFF-1];
+      const b = rand(bR[0],bR[1]), answer = rand(ansR[0],ansR[1]);
+      const a = b*answer;
+      return { skill:"Division", q:`${a} ÷ ${b} = ?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // two-digit divisor division, exact
+    function(){
+      const [bR,ansR] = DIFF_TABLES.divExact2[DIFF-1];
+      const b = rand(bR[0],bR[1]), answer = rand(ansR[0],ansR[1]);
+      const a = b*answer;
+      return { skill:"Division", q:`${a} ÷ ${b} = ?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // two-digit divisor division with remainder
+    function(){
+      const [bR,qR] = DIFF_TABLES.divRem2[DIFF-1];
+      const b = rand(bR[0],bR[1]);
+      const q = rand(qR[0],qR[1]);
+      const extra = rand(1, Math.max(1,b-1));
+      const a = b*q + extra;
+      const displayAnswer = `${q}R${extra}`;
+      return { skill:"Division with Remainder", q:`${a} ÷ ${b} = ? (write like 7R3)`, displayAnswer,
+        validate: u => {
+          const cleaned = u.toUpperCase().replace(/\s+/g,'');
+          const m = cleaned.match(/^(\d+)R(\d+)$/);
+          if(!m) return false;
+          return Number(m[1]) === q && Number(m[2]) === extra;
+        } };
+    },
+    // rounding to nearest place value (easier levels round to tens/hundreds, harder levels round to bigger places)
+    function(){
+      const useHigh = Math.random() < 0.5;
+      const [lo,hi] = useHigh ? DIFF_TABLES.roundHigh[DIFF-1] : DIFF_TABLES.roundLow[DIFF-1];
+      const divisor = useHigh ? DIFF_TABLES.roundHighDiv[DIFF-1] : DIFF_TABLES.roundLowDiv[DIFF-1];
+      const num = rand(lo,hi);
+      const answer = Math.round(num/divisor)*divisor;
+      const place = PLACE_NAMES[divisor] || `${divisor}s`;
+      return { skill:`Rounding to Nearest ${place.replace(/s$/,'')}`, q:`Round ${num.toLocaleString()} to the nearest ${place.replace(/s$/,'')}.`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // place value, digit count scales with difficulty
+    function(){
+      const digitCount = DIFF_TABLES.placeDigits[DIFF-1];
+      const digits = [rand(1,9)];
+      for(let i=1;i<digitCount;i++) digits.push(rand(0,9));
+      const num = digits.reduce((acc,d) => acc*10+d, 0);
+      const idx = rand(0, digitCount-1);
+      const digit = digits[idx];
+      const placeValue = Math.pow(10, digitCount-1-idx);
+      const placeName = PLACE_NAMES[placeValue] || `10^${digitCount-1-idx}`;
+      const answer = digit*placeValue;
+      return { skill:"Place Value", q:`In ${num.toLocaleString()}, what digit is in the ${placeName} place?`, displayAnswer:String(digit),
+        validate: u => Number(u) === digit };
+    },
+    // adding fractions with different denominators (one a multiple of the other)
+    function(){
+      const smallDenList = DIFF_TABLES.fracSmallDen[DIFF-1];
+      const [multMin,multMax] = DIFF_TABLES.fracMult[DIFF-1];
+      const smallDen = pick(smallDenList);
+      const mult = rand(multMin, multMax);
+      const bigDen = smallDen*mult;
+      const n1 = rand(1, smallDen-1);
+      const n1Converted = n1*mult;
+      let n2 = rand(1, Math.max(1, bigDen-1-n1Converted));
+      if(n2 < 1) n2 = 1;
+      const sumNum = n1Converted+n2;
+      const displayAnswer = `${sumNum}/${bigDen}`;
+      return { skill:"Adding Fractions", q:`${n1}/${smallDen} + ${n2}/${bigDen} = ? (as a fraction, denominator ${bigDen})`, displayAnswer,
+        validate: u => {
+          const m = u.replace(/\s+/g,'').match(/^(\d+)\/(\d+)$/);
+          if(!m) return false;
+          const un = Number(m[1]), ud = Number(m[2]);
+          if(ud === 0) return false;
+          return un*bigDen === sumNum*ud; // cross-multiply, accepts reduced/unreduced equivalents
+        } };
+    },
+    // comparing fractions, different denominators (type the greater fraction)
+    function(){
+      const pairs = [[2,3],[3,4],[2,5],[3,5],[4,5],[5,6],[3,8],[5,8],[7,8],[5,9],[7,9],[7,10],[9,10],[5,7],[4,7],[7,12],[5,11],[8,11],[9,13],[6,13]];
+      const threshold = DIFF_TABLES.fracThreshold[DIFF-1];
+      let p1 = pairs[rand(0,pairs.length-1)], p2 = pairs[rand(0,pairs.length-1)];
+      let v1 = p1[0]/p1[1], v2 = p2[0]/p2[1];
+      let tries = 0;
+      while(Math.abs(v1-v2) < threshold && tries < 20){ p2 = pairs[rand(0,pairs.length-1)]; v2 = p2[0]/p2[1]; tries++; }
+      const winner = v1 > v2 ? p1 : p2;
+      const displayAnswer = `${winner[0]}/${winner[1]}`;
+      return { skill:"Comparing Fractions", q:`Which is greater: ${p1[0]}/${p1[1]} or ${p2[0]}/${p2[1]}? (type the fraction)`, displayAnswer,
+        validate: u => {
+          const m = u.replace(/\s+/g,'').match(/^(\d+)\/(\d+)$/);
+          if(!m) return false;
+          const un = Number(m[1]), ud = Number(m[2]);
+          if(ud === 0) return false;
+          return un*winner[1] === winner[0]*ud;
+        } };
+    },
+    // three-step word problem (multiply, then add, then subtract)
+    function(){
+      const [teamsR,playersR,joinedR,leftR] = DIFF_TABLES.stepTeams[DIFF-1];
+      const teams = rand(teamsR[0],teamsR[1]), players = rand(playersR[0],playersR[1]),
+            joined = rand(joinedR[0],joinedR[1]), left = rand(leftR[0],leftR[1]);
+      const answer = teams*players + joined - left;
+      return { skill:"Multi-Step Word Problem", q:`A softball league has ${teams} teams with ${players} players each. Then ${joined} more players joined, and ${left} players had to leave. How many players are there now?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // division word problem (equal groups)
+    function(){
+      const [groupsR,perGroupR] = DIFF_TABLES.divWordProb[DIFF-1];
+      const groups = rand(groupsR[0],groupsR[1]);
+      const perGroup = rand(perGroupR[0],perGroupR[1]);
+      const total = groups*perGroup;
+      return { skill:"Division Word Problem", q:`A coach has ${total} softballs to pack equally into ${groups} bags. How many balls go in each bag?`, displayAnswer:String(perGroup),
+        validate: u => Number(u) === perGroup };
+    },
+    // perimeter of a rectangle (softball field themed)
+    function(){
+      const [lR,wR] = DIFF_TABLES.perimeter[DIFF-1];
+      const l = rand(lR[0],lR[1]), w = rand(wR[0],wR[1]);
+      const answer = 2*(l+w);
+      return { skill:"Perimeter", q:`A rectangular practice field is ${l} yards long and ${w} yards wide. What is its perimeter in yards?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // area of a rectangle
+    function(){
+      const [lR,wR] = DIFF_TABLES.area[DIFF-1];
+      const l = rand(lR[0],lR[1]), w = rand(wR[0],wR[1]);
+      const answer = l*w;
+      return { skill:"Area", q:`A dugout floor is ${l} feet long and ${w} feet wide. What is its area in square feet?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // three-digit by one-digit multiplication (extra challenge)
+    function(){
+      const [aR,bR] = DIFF_TABLES.mult3x1[DIFF-1];
+      const a = rand(aR[0],aR[1]), b = rand(bR[0],bR[1]);
+      const answer = a*b;
+      return { skill:"Multi-digit Multiplication", q:`${a} × ${b} = ?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // multi-step word problem: multiply then subtract (bigger numbers)
+    function(){
+      const [casesR,perCaseR,damagedR] = DIFF_TABLES.stepCases[DIFF-1];
+      const cases = rand(casesR[0],casesR[1]);
+      const perCase = rand(perCaseR[0],perCaseR[1]);
+      const total = cases*perCase;
+      const damaged = rand(damagedR[0],damagedR[1]);
+      const answer = total - damaged;
+      return { skill:"Multi-Step Word Problem", q:`A sporting goods store receives ${cases} cases of softballs with ${perCase} balls in each case. ${damaged} balls are damaged and removed. How many good balls are left?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    },
+    // perimeter + cost two-step problem
+    function(){
+      const [lR,wR,costR] = DIFF_TABLES.stepFence[DIFF-1];
+      const l = rand(lR[0],lR[1]), w = rand(wR[0],wR[1]);
+      const perimeter = 2*(l+w);
+      const costPerYard = rand(costR[0],costR[1]);
+      const answer = perimeter*costPerYard;
+      return { skill:"Multi-Step Word Problem", q:`A team wants to fence a field that is ${l} yards long and ${w} yards wide. Fencing costs $${costPerYard} per yard. What is the total cost, in dollars, to fence the whole perimeter?`, displayAnswer:String(answer),
+        validate: u => Number(u) === answer };
+    }
+  ];
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  const TOTAL_INNINGS = 9;
+  const MAX_ATTEMPTS = 3;
+  let problems = [];
+  let current = 0;
+  let score = 0;
+  let answered = false;
+  let attempts = 0;
+  let results = []; // 'safe' | 'out'
+
+  function buildProblems(){
+    DIFF = loadDifficulty();
+    if(diffBadgeEl) diffBadgeEl.textContent = `Level ${DIFF}`;
+    problems = [];
+    const pool = shuffle([...generators]);
+    for(let i=0;i<TOTAL_INNINGS;i++){
+      const gen = pool[i % pool.length];
+      problems.push(gen());
+    }
+  }
+
+  const questionText = document.getElementById('questionText');
+  const skillLabel = document.getElementById('skillLabel');
+  const answerInput = document.getElementById('answerInput');
+  const swingBtn = document.getElementById('swingBtn');
+  const feedbackNote = document.getElementById('feedbackNote');
+  const inningNum = document.getElementById('inningNum');
+  const inningFlag = document.getElementById('inningFlag');
+  const scoreNum = document.getElementById('scoreNum');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressDots = document.getElementById('progressDots');
+  const callOverlay = document.getElementById('callOverlay');
+  const callText = document.getElementById('callText');
+  const gameArea = document.getElementById('gameArea');
+  const endScreen = document.getElementById('endScreen');
+  const diffBadgeEl = document.getElementById('diffBadge');
+
+  function renderDots(){
+    progressDots.innerHTML = '';
+    for(let i=0;i<TOTAL_INNINGS;i++){
+      const d = document.createElement('div');
+      d.className = 'dot';
+      if(results[i]==='safe') d.className += ' played-safe';
+      if(results[i]==='out') d.className += ' played-out';
+      progressDots.appendChild(d);
+    }
+  }
+
+  function loadProblem(){
+    answered = false;
+    attempts = 0;
+    nextBtn.classList.remove('ready');
+    const p = problems[current];
+    skillLabel.textContent = p.skill;
+    questionText.textContent = p.q;
+    inningNum.textContent = current+1;
+    inningFlag.textContent = current+1;
+    scoreNum.textContent = score;
+    answerInput.value = '';
+    answerInput.disabled = false;
+    answerInput.classList.remove('correct-reveal','wrong-reveal');
+    feedbackNote.textContent = '';
+    swingBtn.disabled = false;
+    renderDots();
+    setTimeout(()=> answerInput.focus(), 50);
+  }
+
+  function submitAnswer(){
+    if(answered) return;
+    const raw = answerInput.value;
+    if(raw.trim() === '') { answerInput.focus(); return; }
+    playBatCrack();
+
+    const p = problems[current];
+    const normalized = raw.trim().toLowerCase().replace(/\s+/g,'');
+    const isCorrect = p.validate(normalized);
+
+    if(isCorrect){
+      answered = true;
+      answerInput.disabled = true;
+      swingBtn.disabled = true;
+      answerInput.classList.add('correct-reveal');
+      score++; results[current] = 'safe';
+      feedbackNote.textContent = '';
+      scoreNum.textContent = score;
+      renderDots();
+      setTimeout(()=> showCall('safe'), 160);
+      nextBtn.classList.add('ready');
+      return;
+    }
+
+    // wrong answer
+    attempts++;
+    if(attempts < MAX_ATTEMPTS){
+      // still has strikes left — let them try again
+      answerInput.classList.add('wrong-reveal');
+      const left = MAX_ATTEMPTS - attempts;
+      feedbackNote.textContent = `Not quite — swing again! (${left} ${left===1?'try':'tries'} left)`;
+      setTimeout(()=> showCall('strike', attempts), 160);
+      setTimeout(()=>{
+        answerInput.classList.remove('wrong-reveal');
+        answerInput.value = '';
+        answerInput.focus();
+      }, 750);
+    } else {
+      // out of strikes
+      answered = true;
+      answerInput.disabled = true;
+      swingBtn.disabled = true;
+      answerInput.classList.add('wrong-reveal');
+      results[current] = 'out';
+      feedbackNote.textContent = `Correct answer: ${p.displayAnswer}`;
+      renderDots();
+      setTimeout(()=> showCall('out'), 160);
+      nextBtn.classList.add('ready');
+    }
+  }
+
+  swingBtn.addEventListener('click', submitAnswer);
+  answerInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ submitAnswer(); }
+  });
+
+  function showCall(kind, strikeNum){
+    if(kind === 'safe'){
+      callText.textContent = 'SAFE!';
+      callText.className = 'call-text safe';
+      playSafeChime();
+    } else if(kind === 'out'){
+      callText.textContent = 'OUT!';
+      callText.className = 'call-text out';
+      playOutBuzz();
+    } else {
+      callText.textContent = `STRIKE ${strikeNum}!`;
+      callText.className = 'call-text strike';
+      playStrikeBuzz();
+    }
+    callOverlay.classList.add('show');
+    setTimeout(()=>{ callOverlay.classList.remove('show'); }, kind==='strike' ? 650 : 1100);
+  }
+
+  nextBtn.addEventListener('click', function(){
+    if(!answered) return;
+    current++;
+    if(current >= TOTAL_INNINGS){
+      showEndScreen();
+    } else {
+      loadProblem();
+    }
+  });
+
+  function showEndScreen(){
+    gameArea.style.display = 'none';
+    endScreen.style.display = 'block';
+    document.getElementById('endScore').textContent = `${score} / ${TOTAL_INNINGS}`;
+    const pct = score/TOTAL_INNINGS;
+    let title, sub, badge;
+    if(pct === 1){ title = "Perfect Game!"; sub = "You didn't miss a single pitch."; badge = "🎉 Leveled Up to 4th Grade — All-Star Status!"; }
+    else if(pct >= 0.7){ title = "Great Game, Slugger!"; sub = "Strong hustle out there today."; badge = "⬆️ Leveling Up to 4th Grade!"; }
+    else if(pct >= 0.5){ title = "Solid Effort!"; sub = "You're rounding the bases toward 4th grade."; badge = "⚾ Keep practicing — you're close!"; }
+    else{ title = "Nice Try!"; sub = "Every slugger strikes out sometimes — swing again!"; badge = "🔁 Run it back for more practice!"; }
+    document.getElementById('endTitle').textContent = title;
+    document.getElementById('endSub').textContent = sub;
+    document.getElementById('levelBadge').textContent = badge;
+    playVictorySong();
+  }
+
+  document.getElementById('replayBtn').addEventListener('click', function(){
+    score = 0; current = 0; results = [];
+    buildProblems();
+    endScreen.style.display = 'none';
+    gameArea.style.display = 'block';
+    loadProblem();
+  });
+
+  // init
+  buildProblems();
+  loadProblem();
+})();
+</script>
+</body>
+</html>
