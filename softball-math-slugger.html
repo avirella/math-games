@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Math Slugger — 9 Innings to 4th Grade</title>
+<script>
+  // Auth guard: bounce to login.html if not signed in this tab/session.
+  (function(){
+    try{
+      if(!sessionStorage.getItem("mathGamesAuth")){
+        location.replace("login.html?redirect=softball-math-slugger.html");
+      }
+    } catch(e){
+      location.replace("login.html");
+    }
+  })();
+</script>
 <style>
   :root{
     --navy: #0B2545;
@@ -240,6 +252,7 @@
     <span class="diff-badge" id="diffBadge">Level 3</span>
     <button class="sound-toggle" id="soundToggle">🔊 Sound On</button>
     <a class="nav-link" href="settings.html">⚙️ Settings</a>
+    <a class="nav-link" href="#" id="logoutLink">Log out 🚪</a>
   </div>
 
   <div class="scoreboard">
@@ -908,6 +921,12 @@
   // init
   buildProblems();
   loadProblem();
+
+  document.getElementById("logoutLink").addEventListener("click", function(e){
+    e.preventDefault();
+    sessionStorage.removeItem("mathGamesAuth");
+    location.href = "login.html";
+  });
 })();
 </script>
 </body>

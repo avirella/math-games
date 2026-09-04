@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Game Settings</title>
+<script>
+  // Auth guard: bounce to login.html if not signed in this tab/session.
+  (function(){
+    try{
+      if(!sessionStorage.getItem("mathGamesAuth")){
+        location.replace("login.html?redirect=settings.html");
+      }
+    } catch(e){
+      location.replace("login.html");
+    }
+  })();
+</script>
 <style>
   :root{
     --cloud:#FDF6FF;
@@ -192,7 +204,7 @@
       <h1>⚙️ Game Settings</h1>
       <p>Choose how tricky each game feels</p>
     </div>
-    <div class="spacer"></div>
+    <a class="back-link" href="#" id="logoutLink">Log out 🚪</a>
   </div>
 
   <div class="card unicorn-card">
@@ -318,6 +330,12 @@
       : "Hmm, couldn't save — your browser may be blocking storage.";
     saveMsg.classList.add("show");
     setTimeout(() => saveMsg.classList.remove("show"), 2600);
+  });
+
+  document.getElementById("logoutLink").addEventListener("click", (e) => {
+    e.preventDefault();
+    sessionStorage.removeItem("mathGamesAuth");
+    location.href = "login.html";
   });
 </script>
 </body>

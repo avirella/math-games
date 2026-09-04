@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Math Games Home Base</title>
+<script>
+  // Auth guard: bounce to login.html if not signed in this tab/session.
+  (function(){
+    try{
+      if(!sessionStorage.getItem("mathGamesAuth")){
+        location.replace("login.html?redirect=index.html");
+      }
+    } catch(e){
+      location.replace("login.html");
+    }
+  })();
+</script>
 <style>
   :root{
     --cloud:#FDF6FF;
@@ -169,6 +181,7 @@
 <body>
 
 <a class="settings-link" href="settings.html" aria-label="Game settings" title="Game settings">⚙️</a>
+<a class="settings-link" style="right:76px;" href="#" id="logoutLink" aria-label="Log out" title="Log out">🚪</a>
 
 <div class="app">
   <div class="header">
@@ -196,6 +209,14 @@
 
   <div class="footer-note">Have fun and good luck! 🎉</div>
 </div>
+
+<script>
+  document.getElementById("logoutLink").addEventListener("click", (e) => {
+    e.preventDefault();
+    sessionStorage.removeItem("mathGamesAuth");
+    location.href = "login.html";
+  });
+</script>
 
 </body>
 </html>

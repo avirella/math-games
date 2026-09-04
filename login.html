@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In — Math Games Home Base</title>
+<style>
+  :root{
+    --cloud:#FDF6FF;
+    --plum:#5B3A76;
+    --pink:#FF9AC7;
+    --gold:#FFD972;
+    --sky:#AEE7FF;
+    --mint:#8FE3CF;
+    --lavender:#C9A7EB;
+    --lavender-dark:#8B5FBF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 12% 15%, rgba(174,231,255,0.45), transparent 40%),
+      radial-gradient(circle at 88% 10%, rgba(255,154,199,0.35), transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(201,167,235,0.3), transparent 45%),
+      var(--cloud);
+    font-family: Verdana, Tahoma, 'Trebuchet MS', sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:24px 16px;
+    color:var(--plum);
+  }
+  .app{
+    width:100%;
+    max-width:380px;
+  }
+  .header{
+    text-align:center;
+    margin-bottom:22px;
+  }
+  .header .emoji{
+    font-size:48px;
+    margin-bottom:6px;
+  }
+  .header h1{
+    font-size:clamp(24px, 6vw, 30px);
+    margin:0 0 6px;
+    color:var(--lavender-dark);
+    text-shadow: 2px 2px 0 var(--gold);
+  }
+  .header p{
+    margin:0;
+    font-size:14px;
+    opacity:0.8;
+  }
+
+  .card{
+    background:#ffffff;
+    border-radius:24px;
+    padding:26px 24px;
+    box-shadow: 0 10px 0 rgba(139,95,191,0.10), 0 2px 10px rgba(0,0,0,0.06);
+    border:3px solid var(--lavender);
+  }
+
+  .field{
+    margin-bottom:16px;
+  }
+  .field label{
+    display:block;
+    font-size:13px;
+    font-weight:bold;
+    margin-bottom:6px;
+    color:var(--lavender-dark);
+  }
+  .field input{
+    width:100%;
+    font-size:16px;
+    padding:12px 14px;
+    border-radius:14px;
+    border:3px solid var(--sky);
+    background:#f5fbff;
+    color:var(--plum);
+    font-family:inherit;
+  }
+  .field input:focus{
+    outline:none;
+    border-color:var(--lavender-dark);
+    background:#fff;
+  }
+
+  .login-btn{
+    width:100%;
+    background:var(--lavender-dark);
+    color:white;
+    border:none;
+    padding:14px;
+    border-radius:30px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow: 0 5px 0 rgba(91,58,118,0.35);
+    margin-top:4px;
+  }
+  .login-btn:active{
+    transform: translateY(3px);
+    box-shadow:0 1px 0 rgba(91,58,118,0.35);
+  }
+
+  .error-msg{
+    text-align:center;
+    margin-top:14px;
+    font-size:14px;
+    font-weight:bold;
+    color:#E0679E;
+    min-height:20px;
+    opacity:0;
+    transition:opacity 0.2s ease;
+  }
+  .error-msg.show{ opacity:1; }
+
+  .footer-note{
+    text-align:center;
+    margin-top:22px;
+    font-size:13px;
+    color:var(--plum);
+    opacity:0.65;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="emoji">🔐✨</div>
+    <h1>Math Games Home Base</h1>
+    <p>Sign in to start playing</p>
+  </div>
+
+  <div class="card">
+    <form id="loginForm" autocomplete="off">
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" autocomplete="username" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" autocomplete="current-password">
+      </div>
+      <button type="submit" class="login-btn">Sign In →</button>
+      <div class="error-msg" id="errorMsg">That username or password isn't right. Try again!</div>
+    </form>
+  </div>
+
+  <div class="footer-note">Ask a grown-up if you forgot your password 🌟</div>
+</div>
+
+<script>
+  // Shared login list. This is a simple client-side gate for a family/kids
+  // site, not real security -- anyone viewing this page's source can see it.
+  const USERS = [
+    { username: "aly",   password: "softball" },
+    { username: "avi",   password: "martialarts" },
+    { username: "admin", password: "Password123" }
+  ];
+
+  const AUTH_KEY = "mathGamesAuth";
+
+  const form = document.getElementById("loginForm");
+  const usernameInput = document.getElementById("username");
+  const passwordInput = document.getElementById("password");
+  const errorMsg = document.getElementById("errorMsg");
+
+  function getRedirectTarget(){
+    const params = new URLSearchParams(location.search);
+    const target = params.get("redirect");
+    const allowed = ["index.html", "settings.html", "unicorn-math-quiz-auto.html", "softball-math-slugger.html"];
+    return allowed.includes(target) ? target : "index.html";
+  }
+
+  // If already signed in this tab, skip straight to the destination.
+  if(sessionStorage.getItem(AUTH_KEY)){
+    location.replace(getRedirectTarget());
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const u = usernameInput.value.trim();
+    const p = passwordInput.value;
+
+    const match = USERS.find(acct => acct.username === u && acct.password === p);
+
+    if(match){
+      sessionStorage.setItem(AUTH_KEY, JSON.stringify({ user: match.username }));
+      location.replace(getRedirectTarget());
+    } else {
+      errorMsg.classList.add("show");
+      passwordInput.value = "";
+      passwordInput.focus();
+    }
+  });
+
+  // Hide the error message again once they start retyping.
+  [usernameInput, passwordInput].forEach(el => {
+    el.addEventListener("input", () => errorMsg.classList.remove("show"));
+  });
+
+  usernameInput.focus();
+</script>
+</body>
+</html>

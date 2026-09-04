@@ -3,6 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <title>Unicorn Number Adventure - Extra Sparkly Challenge</title>
+<script>
+  // Auth guard: bounce to login.html if not signed in this tab/session.
+  (function(){
+    try{
+      if(!sessionStorage.getItem("mathGamesAuth")){
+        location.replace("login.html?redirect=unicorn-math-quiz-auto.html");
+      }
+    } catch(e){
+      location.replace("login.html");
+    }
+  })();
+</script>
 <style>
   :root{
     --cloud:#FDF6FF;
@@ -301,6 +313,7 @@
     <a class="nav-link" href="index.html">← Home</a>
     <span class="diff-badge" id="diffBadge">Level 3</span>
     <a class="nav-link" href="settings.html">⚙️ Settings</a>
+    <a class="nav-link" href="#" id="logoutLink">Log out 🚪</a>
   </div>
   <div class="header">
     <h1>🦄 Unicorn Number Adventure ✨</h1>
@@ -698,6 +711,12 @@ document.getElementById("restartBtn").addEventListener("click", () => {
 });
 
 loadQuestion();
+
+document.getElementById("logoutLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  sessionStorage.removeItem("mathGamesAuth");
+  location.href = "login.html";
+});
 </script>
 </body>
 </html>
