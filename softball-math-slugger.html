@@ -535,7 +535,7 @@
       const a = rand(min,max), b = rand(min,max);
       const answer = a+b;
       return { skill:"Multi-digit Addition", q:`${a} + ${b} = ?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // multi-digit subtraction with zeros / regrouping, bigger numbers
     function(){
@@ -546,7 +546,7 @@
       const b = rand(bMin, bMax);
       const answer = a-b;
       return { skill:"Multi-digit Subtraction", q:`${a} - ${b} = ?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // two-digit by two-digit multiplication
     function(){
@@ -554,7 +554,7 @@
       const a = rand(aR[0],aR[1]), b = rand(bR[0],bR[1]);
       const answer = a*b;
       return { skill:"Multi-digit Multiplication", q:`${a} × ${b} = ?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // harder multiplication facts, stretched beyond the standard 12x12 table
     function(){
@@ -562,7 +562,7 @@
       const a = rand(aR[0],aR[1]), b = rand(bR[0],bR[1]);
       const answer = a*b;
       return { skill:"Multiplication Facts", q:`${a} × ${b} = ?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // division with a remainder — answer format like 7R3
     function(){
@@ -573,12 +573,7 @@
       const a = b*q + extra;
       const displayAnswer = `${q}R${extra}`;
       return { skill:"Division with Remainder", q:`${a} ÷ ${b} = ? (write like 7R3)`, displayAnswer,
-        validate: u => {
-          const cleaned = u.toUpperCase().replace(/\s+/g,'');
-          const m = cleaned.match(/^(\d+)R(\d+)$/);
-          if(!m) return false;
-          return Number(m[1]) === q && Number(m[2]) === extra;
-        } };
+        kind:"remainder", q, extra };
     },
     // clean whole-number division, larger dividends
     function(){
@@ -586,7 +581,7 @@
       const b = rand(bR[0],bR[1]), answer = rand(ansR[0],ansR[1]);
       const a = b*answer;
       return { skill:"Division", q:`${a} ÷ ${b} = ?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // two-digit divisor division, exact
     function(){
@@ -594,7 +589,7 @@
       const b = rand(bR[0],bR[1]), answer = rand(ansR[0],ansR[1]);
       const a = b*answer;
       return { skill:"Division", q:`${a} ÷ ${b} = ?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // two-digit divisor division with remainder
     function(){
@@ -605,12 +600,7 @@
       const a = b*q + extra;
       const displayAnswer = `${q}R${extra}`;
       return { skill:"Division with Remainder", q:`${a} ÷ ${b} = ? (write like 7R3)`, displayAnswer,
-        validate: u => {
-          const cleaned = u.toUpperCase().replace(/\s+/g,'');
-          const m = cleaned.match(/^(\d+)R(\d+)$/);
-          if(!m) return false;
-          return Number(m[1]) === q && Number(m[2]) === extra;
-        } };
+        kind:"remainder", q, extra };
     },
     // rounding to nearest place value (easier levels round to tens/hundreds, harder levels round to bigger places)
     function(){
@@ -621,7 +611,7 @@
       const answer = Math.round(num/divisor)*divisor;
       const place = PLACE_NAMES[divisor] || `${divisor}s`;
       return { skill:`Rounding to Nearest ${place.replace(/s$/,'')}`, q:`Round ${num.toLocaleString()} to the nearest ${place.replace(/s$/,'')}.`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // place value, digit count scales with difficulty
     function(){
@@ -635,7 +625,7 @@
       const placeName = PLACE_NAMES[placeValue] || `10^${digitCount-1-idx}`;
       const answer = digit*placeValue;
       return { skill:"Place Value", q:`In ${num.toLocaleString()}, what digit is in the ${placeName} place?`, displayAnswer:String(digit),
-        validate: u => Number(u) === digit };
+        kind:"exact", answer: digit };
     },
     // adding fractions with different denominators (one a multiple of the other)
     function(){
@@ -651,13 +641,7 @@
       const sumNum = n1Converted+n2;
       const displayAnswer = `${sumNum}/${bigDen}`;
       return { skill:"Adding Fractions", q:`${n1}/${smallDen} + ${n2}/${bigDen} = ? (as a fraction, denominator ${bigDen})`, displayAnswer,
-        validate: u => {
-          const m = u.replace(/\s+/g,'').match(/^(\d+)\/(\d+)$/);
-          if(!m) return false;
-          const un = Number(m[1]), ud = Number(m[2]);
-          if(ud === 0) return false;
-          return un*bigDen === sumNum*ud; // cross-multiply, accepts reduced/unreduced equivalents
-        } };
+        kind:"fraction", num: sumNum, den: bigDen };
     },
     // comparing fractions, different denominators (type the greater fraction)
     function(){
@@ -670,13 +654,7 @@
       const winner = v1 > v2 ? p1 : p2;
       const displayAnswer = `${winner[0]}/${winner[1]}`;
       return { skill:"Comparing Fractions", q:`Which is greater: ${p1[0]}/${p1[1]} or ${p2[0]}/${p2[1]}? (type the fraction)`, displayAnswer,
-        validate: u => {
-          const m = u.replace(/\s+/g,'').match(/^(\d+)\/(\d+)$/);
-          if(!m) return false;
-          const un = Number(m[1]), ud = Number(m[2]);
-          if(ud === 0) return false;
-          return un*winner[1] === winner[0]*ud;
-        } };
+        kind:"fraction", num: winner[0], den: winner[1] };
     },
     // three-step word problem (multiply, then add, then subtract)
     function(){
@@ -685,7 +663,7 @@
             joined = rand(joinedR[0],joinedR[1]), left = rand(leftR[0],leftR[1]);
       const answer = teams*players + joined - left;
       return { skill:"Multi-Step Word Problem", q:`A softball league has ${teams} teams with ${players} players each. Then ${joined} more players joined, and ${left} players had to leave. How many players are there now?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // division word problem (equal groups)
     function(){
@@ -694,7 +672,7 @@
       const perGroup = rand(perGroupR[0],perGroupR[1]);
       const total = groups*perGroup;
       return { skill:"Division Word Problem", q:`A coach has ${total} softballs to pack equally into ${groups} bags. How many balls go in each bag?`, displayAnswer:String(perGroup),
-        validate: u => Number(u) === perGroup };
+        kind:"exact", answer: perGroup };
     },
     // perimeter of a rectangle (softball field themed)
     function(){
@@ -702,7 +680,7 @@
       const l = rand(lR[0],lR[1]), w = rand(wR[0],wR[1]);
       const answer = 2*(l+w);
       return { skill:"Perimeter", q:`A rectangular practice field is ${l} yards long and ${w} yards wide. What is its perimeter in yards?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // area of a rectangle
     function(){
@@ -710,7 +688,7 @@
       const l = rand(lR[0],lR[1]), w = rand(wR[0],wR[1]);
       const answer = l*w;
       return { skill:"Area", q:`A dugout floor is ${l} feet long and ${w} feet wide. What is its area in square feet?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // three-digit by one-digit multiplication (extra challenge)
     function(){
@@ -718,7 +696,7 @@
       const a = rand(aR[0],aR[1]), b = rand(bR[0],bR[1]);
       const answer = a*b;
       return { skill:"Multi-digit Multiplication", q:`${a} × ${b} = ?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // multi-step word problem: multiply then subtract (bigger numbers)
     function(){
@@ -729,7 +707,7 @@
       const damaged = rand(damagedR[0],damagedR[1]);
       const answer = total - damaged;
       return { skill:"Multi-Step Word Problem", q:`A sporting goods store receives ${cases} cases of softballs with ${perCase} balls in each case. ${damaged} balls are damaged and removed. How many good balls are left?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     },
     // perimeter + cost two-step problem
     function(){
@@ -739,9 +717,29 @@
       const costPerYard = rand(costR[0],costR[1]);
       const answer = perimeter*costPerYard;
       return { skill:"Multi-Step Word Problem", q:`A team wants to fence a field that is ${l} yards long and ${w} yards wide. Fencing costs $${costPerYard} per yard. What is the total cost, in dollars, to fence the whole perimeter?`, displayAnswer:String(answer),
-        validate: u => Number(u) === answer };
+        kind:"exact", answer };
     }
   ];
+
+  function checkAnswer(p, normalized){
+    if(p.kind === "exact"){
+      return Number(normalized) === p.answer;
+    }
+    if(p.kind === "remainder"){
+      const cleaned = normalized.toUpperCase().replace(/\s+/g,'');
+      const m = cleaned.match(/^(\d+)R(\d+)$/);
+      if(!m) return false;
+      return Number(m[1]) === p.q && Number(m[2]) === p.extra;
+    }
+    if(p.kind === "fraction"){
+      const m = normalized.replace(/\s+/g,'').match(/^(\d+)\/(\d+)$/);
+      if(!m) return false;
+      const un = Number(m[1]), ud = Number(m[2]);
+      if(ud === 0) return false;
+      return un*p.den === p.num*ud;
+    }
+    return false;
+  }
   function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
   const TOTAL_INNINGS = 9;
@@ -753,6 +751,43 @@
   let attempts = 0;
   let results = []; // 'safe' | 'out'
 
+  // --- Per-player progress persistence (localStorage, keyed by username) ---
+  // This is separate from the login session (sessionStorage): progress
+  // survives logging out and back in, but each player only ever sees
+  // their own saved game, never another player's.
+  const GAME_KEY = "softball";
+  function getCurrentUser(){
+    try{
+      const raw = sessionStorage.getItem("mathGamesAuth");
+      if(!raw) return "guest";
+      const parsed = JSON.parse(raw);
+      return parsed.user || "guest";
+    } catch(e){ return "guest"; }
+  }
+  function progressKey(){
+    return `mathGamesProgress:${GAME_KEY}:${getCurrentUser()}`;
+  }
+  function saveProgress(){
+    try{
+      localStorage.setItem(progressKey(), JSON.stringify({ problems, current, score, results }));
+    } catch(e){}
+  }
+  function loadSavedProgress(){
+    try{
+      const raw = localStorage.getItem(progressKey());
+      if(!raw) return null;
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed.problems) && parsed.problems.length === TOTAL_INNINGS &&
+         typeof parsed.current === "number" && parsed.current < TOTAL_INNINGS){
+        return parsed;
+      }
+      return null;
+    } catch(e){ return null; }
+  }
+  function clearProgress(){
+    try{ localStorage.removeItem(progressKey()); } catch(e){}
+  }
+
   function buildProblems(){
     DIFF = loadDifficulty();
     if(diffBadgeEl) diffBadgeEl.textContent = `Level ${DIFF}`;
@@ -761,6 +796,24 @@
     for(let i=0;i<TOTAL_INNINGS;i++){
       const gen = pool[i % pool.length];
       problems.push(gen());
+    }
+  }
+
+  function initGame(){
+    const saved = loadSavedProgress();
+    if(saved){
+      DIFF = loadDifficulty();
+      if(diffBadgeEl) diffBadgeEl.textContent = `Level ${DIFF}`;
+      problems = saved.problems;
+      current = saved.current;
+      score = saved.score;
+      results = saved.results || [];
+    } else {
+      score = 0;
+      current = 0;
+      results = [];
+      buildProblems();
+      saveProgress();
     }
   }
 
@@ -818,7 +871,7 @@
 
     const p = problems[current];
     const normalized = raw.trim().toLowerCase().replace(/\s+/g,'');
-    const isCorrect = p.validate(normalized);
+    const isCorrect = checkAnswer(p, normalized);
 
     if(isCorrect){
       answered = true;
@@ -829,6 +882,7 @@
       feedbackNote.textContent = '';
       scoreNum.textContent = score;
       renderDots();
+      saveProgress();
       setTimeout(()=> showCall('safe'), 160);
       nextBtn.classList.add('ready');
       return;
@@ -856,6 +910,7 @@
       results[current] = 'out';
       feedbackNote.textContent = `Correct answer: ${p.displayAnswer}`;
       renderDots();
+      saveProgress();
       setTimeout(()=> showCall('out'), 160);
       nextBtn.classList.add('ready');
     }
@@ -888,8 +943,10 @@
     if(!answered) return;
     current++;
     if(current >= TOTAL_INNINGS){
+      clearProgress();
       showEndScreen();
     } else {
+      saveProgress();
       loadProblem();
     }
   });
@@ -911,15 +968,17 @@
   }
 
   document.getElementById('replayBtn').addEventListener('click', function(){
+    clearProgress();
     score = 0; current = 0; results = [];
     buildProblems();
+    saveProgress();
     endScreen.style.display = 'none';
     gameArea.style.display = 'block';
     loadProblem();
   });
 
   // init
-  buildProblems();
+  initGame();
   loadProblem();
 
   document.getElementById("logoutLink").addEventListener("click", function(e){

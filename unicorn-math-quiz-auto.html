@@ -487,12 +487,60 @@ function generateQuestions(){
   return set;
 }
 
-let questions = generateQuestions();
+// --- Per-player progress persistence (localStorage, keyed by username) ---
+// This is separate from the login session (sessionStorage): progress
+// survives logging out and back in, but each player only ever sees
+// their own saved game, never another player's.
+const GAME_KEY = "unicorn";
+function getCurrentUser(){
+  try{
+    const raw = sessionStorage.getItem("mathGamesAuth");
+    if(!raw) return "guest";
+    const parsed = JSON.parse(raw);
+    return parsed.user || "guest";
+  } catch(e){ return "guest"; }
+}
+function progressKey(){
+  return `mathGamesProgress:${GAME_KEY}:${getCurrentUser()}`;
+}
+function saveProgress(){
+  try{
+    localStorage.setItem(progressKey(), JSON.stringify({ questions, current, score }));
+  } catch(e){}
+}
+function loadSavedProgress(){
+  try{
+    const raw = localStorage.getItem(progressKey());
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    if(Array.isArray(parsed.questions) && parsed.questions.length &&
+       typeof parsed.current === "number" && parsed.current < parsed.questions.length){
+      return parsed;
+    }
+    return null;
+  } catch(e){ return null; }
+}
+function clearProgress(){
+  try{ localStorage.removeItem(progressKey()); } catch(e){}
+}
+
 const diffBadgeEl = document.getElementById("diffBadge");
+
+let questions, current, score;
+const savedGame = loadSavedProgress();
+if(savedGame){
+  DIFF = loadDifficulty();
+  questions = savedGame.questions;
+  current = savedGame.current;
+  score = savedGame.score;
+} else {
+  questions = generateQuestions();
+  current = 0;
+  score = 0;
+  saveProgress();
+}
 if(diffBadgeEl) diffBadgeEl.textContent = `Level ${DIFF}`;
 
-let current = 0;
-let score = 0;
 let attempts = 0;
 const MAX_ATTEMPTS = 3;
 let soundOn = true;
@@ -584,6 +632,7 @@ const mascot = document.getElementById("mascot");
 const scoreRow = document.getElementById("scoreRow");
 const quizCard = document.getElementById("quizCard");
 const endCard = document.getElementById("endCard");
+scoreRow.textContent = `⭐ Score: ${score}`;
 
 function loadQuestion(){
   const q = questions[current];
@@ -629,6 +678,7 @@ function handleAnswer(){
     score++;
     playSuccessSound();
     scoreRow.textContent = `⭐ Score: ${score}`;
+    saveProgress();
     nextBtn.classList.add("show");
     return;
   }
@@ -675,8 +725,10 @@ function pickPraise(){
 nextBtn.addEventListener("click", () => {
   current++;
   if(current >= questions.length){
+    clearProgress();
     finishQuiz();
   } else {
+    saveProgress();
     loadQuestion();
   }
 });
@@ -700,11 +752,13 @@ function finishQuiz(){
 }
 
 document.getElementById("restartBtn").addEventListener("click", () => {
+  clearProgress();
   questions = generateQuestions();
   if(diffBadgeEl) diffBadgeEl.textContent = `Level ${DIFF}`;
   current = 0;
   score = 0;
   scoreRow.textContent = "⭐ Score: 0";
+  saveProgress();
   endCard.classList.add("hidden");
   quizCard.classList.remove("hidden");
   loadQuestion();
